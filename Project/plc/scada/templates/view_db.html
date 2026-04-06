@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}View DB{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-8 mx-auto text-center">
+        <h1 class="display-4">Database view</h1>
+        <p class="lead">View and search the entire database.</p>
+    </div>
+</div>
+
+<div class="row">
+    <form method="get" id="db-search-form">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <input type="text" name="search" class="form-control" 
+                    placeholder="Search Type or Content" value="{{ request.GET.search }}">
+            </div>
+
+            <div class="col-md-4">
+                <input type="date" name="date_filter" class="form-control" 
+                    value="{{ request.GET.date_filter }}">
+            </div>
+
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-50">Search</button>
+                    <a href="{% url 'view_db' %}" class="btn btn-outline-secondary w-50 d-flex align-items-center justify-content-center">Clear</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<hr>
+
+<div class="row">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Log Type</th>
+                <th scope="col">Log Date</th>
+                <th scope="col">Log Content</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in log_entries %}
+            <tr>
+                <td>{{entry.log_type}}</td>
+                <td>{{entry.date}}</td>
+                <td>{{entry.message}}</td>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+:root {
+    --primary-bg-color: #e8e8e8;
+}
+
+body {
+    background-color: var(--primary-bg-color);
+}
+
+.centered {
+    text-align: center;
+    margin: 0 auto;
+}
+
+.log-box {
+    display: block;
+    width: 75vw;
+    height: 50vh;
+    resize: none;
+    border-radius: 10px;
+    border-width: 1px;
+    font-size: x-large;
+}
+
+/* Keeps the table header at the top while scrolling the body */
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.log-wrapper {
+    border-radius: 8px;
+    overflow: hidden;
+}
