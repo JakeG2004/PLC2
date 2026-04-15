@@ -8,12 +8,10 @@ function fetchLogs() {
     const tableBody = document.getElementById('log-table-body');
     const scrollArea = document.getElementById('log-scroll-area');
 
-    fetch('/scada/get_logs/')
+    fetch('/get_logs/')
         .then(response => response.json())
         .then(data => {
             if (data.new_logs) {
-                // 1. Create a DocumentFragment (an off-screen buffer)
-                // This is much faster than updating the live DOM in a loop
                 const fragment = document.createDocumentFragment();
 
                 data.new_logs.forEach(logString => {
@@ -31,7 +29,6 @@ function fetchLogs() {
                     fragment.appendChild(row);
                 });
 
-                // 2. Replace the entire table body content with the buffer
                 tableBody.innerHTML = ""; // Clear existing rows
                 tableBody.appendChild(fragment); // Inject the new buffer
 
@@ -45,8 +42,9 @@ function fetchLogs() {
 // Helper to color-code the "Type" column based on severity
 function getTypeClass(type) {
     const t = type.toUpperCase();
-    if (t.includes('ERROR')) return 'bg-danger';
-    if (t.includes('WARNING') || t.includes('ESTOP')) return 'bg-warning text-dark';
-    if (t.includes('INFO')) return 'bg-info';
-    return 'bg-secondary';
+    if (t.includes('ERROR') || t.includes('SAFETY')) return 'bg-danger';
+    if (t.includes('OPERATION MODE')) return 'bg-warning';
+    if (t.includes('COMPLETE')) return 'bg-success';
+    if (t.includes('CHECKPOINT')) return 'bg-info';
+    return 'bg-primary';
 }

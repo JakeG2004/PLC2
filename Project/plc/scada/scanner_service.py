@@ -28,3 +28,10 @@ def start_scanner():
         thread = threading.Thread(target=run_scanner, name="PLCScannerThread", daemon=True)
         thread.start()
         print("--- PLC Scanner Thread Started ---")
+
+# Returns 1 if estop on, 0 otherwise
+def get_estop_state():
+    return scanner_instance.estop
+
+def get_last_puck_color():
+    return scanner_instance.puck_color

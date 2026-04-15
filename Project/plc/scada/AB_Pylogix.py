@@ -122,7 +122,9 @@ class PLCScanner:
 
         self.estop = self.scan_tag("Program:MainProgram.ESTOP")
 
-        self.log(f"Initial Mode: {self.cur_operating_mode}", "OPERATION MODE")
+        operating_modes = ["Off", "Manual", "Automatic"]
+
+        self.log(f"Initial Mode: {operating_modes[self.cur_operating_mode]}", "OPERATION MODE")
 
     # -----------------------------------------------------
 
@@ -131,8 +133,10 @@ class PLCScanner:
         old_mode = self.cur_operating_mode
         self.cur_operating_mode = self.scan_tag("Program:MainProgram.Operation_Mode")
 
+        operating_modes = ["Off", "Manual", "Automatic"]
+
         if old_mode != self.cur_operating_mode:
-            self.log(f"Changed to {self.cur_operating_mode}", "OPERATION MODE")
+            self.log(f"Changed to {operating_modes[self.cur_operating_mode]}", "OPERATION MODE")
 
     # -----------------------------------------------------
 
@@ -142,7 +146,7 @@ class PLCScanner:
 
         if new_state and not self.mpo_oven_has_puck:
 
-            self.log(f"MPO Oven Received Puck", "PROGRESS")
+            self.log(f"MPO Oven Received", "PROGRESS")
 
             if self.process_start is None:
                 self.process_start = time.time()
@@ -154,7 +158,7 @@ class PLCScanner:
         elif not new_state and self.mpo_oven_has_puck:
 
             elapsed = time.time() - self.segment_start["oven"]
-            self.log(f"MPO Oven Finished Puck ({elapsed:.2f}s)", "PROGRESS")
+            self.log(f"MPO Oven Finished ({elapsed:.2f}s)", "CHECKPOINT")
 
             self.segment_start["oven"] = None
 
@@ -168,7 +172,7 @@ class PLCScanner:
 
         if new_state and not self.mpo_gripper_has_puck:
 
-            self.log(f"MPO Gripper Received Puck", "PROGRESS")
+            self.log(f"MPO Gripper Received", "PROGRESS")
 
             self.segment_start["gripper"] = time.time()
             self.segment_timeout_reported["gripper"] = False
@@ -176,7 +180,7 @@ class PLCScanner:
         elif not new_state and self.mpo_gripper_has_puck:
 
             elapsed = time.time() - self.segment_start["gripper"]
-            self.log(f"MPO Gripper Finished Puck ({elapsed:.2f}s)", "PROGRESS")
+            self.log(f"MPO Gripper Finished ({elapsed:.2f}s)", "CHECKPOINT")
 
             self.segment_start["gripper"] = None
 
@@ -190,7 +194,7 @@ class PLCScanner:
 
         if new_state and not self.mpo_turntable_has_puck:
 
-            self.log(f"MPO Turntable Received Puck", "PROGRESS")
+            self.log(f"MPO Turntable Received", "PROGRESS")
 
             self.segment_start["turntable"] = time.time()
             self.segment_timeout_reported["turntable"] = False
@@ -198,7 +202,7 @@ class PLCScanner:
         elif not new_state and self.mpo_turntable_has_puck:
 
             elapsed = time.time() - self.segment_start["turntable"]
-            self.log(f"MPO Turntable Finished Puck ({elapsed:.2f}s)", "PROGRESS")
+            self.log(f"MPO Turntable Finished ({elapsed:.2f}s)", "CHECKPOINT")
 
             self.segment_start["turntable"] = None
 
@@ -212,7 +216,7 @@ class PLCScanner:
 
         if new_state and not self.sld_has_puck:
 
-            self.log(f"SLD Received Puck", "PROGRESS")
+            self.log(f"SLD Received", "PROGRESS")
 
             self.segment_start["sld"] = time.time()
             self.segment_timeout_reported["sld"] = False
@@ -220,14 +224,14 @@ class PLCScanner:
         elif not new_state and self.sld_has_puck:
 
             elapsed = time.time() - self.segment_start["sld"]
-            self.log(f"SLD Finished Puck ({elapsed:.2f}s)", "PROGRESS")
+            self.log(f"SLD Finished ({elapsed:.2f}s)", "CHECKPOINT")
 
             self.segment_start["sld"] = None
 
             self.calculate_puck_color()
 
             total_time = time.time() - self.process_start
-            self.log(f"{self.puck_color} Puck Processed (Total {total_time:.2f}s)", "PUCK")
+            self.log(f"{self.puck_color} Puck Processed (Total {total_time:.2f}s)", "COMPLETE")
 
             self.process_start = None
 

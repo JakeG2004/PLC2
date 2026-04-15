@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}View DB{% endblock %}
 
@@ -48,7 +49,7 @@
         <tbody>
             {% for entry in log_entries %}
             <tr>
-                <td>{{entry.log_type}}</td>
+                <td><span class="badge log_type">{{ entry.log_type }}</span></td>
                 <td>{{entry.date}}</td>
                 <td>{{entry.message}}</td>
                 </td>
@@ -57,4 +58,8 @@
         </tbody>
     </table>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/table.js' %}"></script>
 {% endblock %}
