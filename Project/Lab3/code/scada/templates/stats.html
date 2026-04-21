@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Statistics{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto text-center">
+        <h1 class="display-4">Statistics</h1>
+        <p class="lead">View relevant operation statistics.</p>
+    </div>
+</div>
+
+<hr>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Logging Server Uptime</h3>
+            <h6 class="card-subtitle mb-2 text-muted">Total current logging site uptime as of page load</h6>
+            <p class="card-text">00:00:00</p>
+        </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Time Since Last Safety Log</h3>
+            <h6 class="card-subtitle mb-2 text-muted">At time of page loading</h6>
+            <p class="card-text">00:00:00</p>
+        </div>
+        </div>
+    </div>
+</div>
+
+<br>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Error Rate</h3>
+            <h6 class="card-subtitle mb-2 text-muted" id="error-text"># of error logs / # of total logs</h6>
+            <div class="chart w-50 centered">
+                <canvas id="errorChart"></canvas>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Puck Colors</h3>
+            <h6 class="card-subtitle mb-2 text-muted">Shows the breakdown of puck colors</h6>
+            <div class="chart w-50 centered">
+                <canvas id="colorChart"></canvas>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+<br>
+
+<div class="row">
+    <div col-md-12>
+        <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Processing Time Breakdown</h3>
+            <h6 class="card-subtitle mb-2 text-muted">Shows the time for a puck to get through, as well as individual component times</h6>
+            <div class="chart">
+                <canvas id="timeChart"></canvas>
+            </div>
+            <h4 class="card-title">Average Times:</h4>
+            <p class="card-text">Total processing time: 60s</p>
+            <p class="card-text">Oven processing time: 10s</p>
+            <p class="card-text">Gripper processing time: 60s</p>
+            <p class="card-text">Turntable processing time: 60s</p>
+            <p class="card-text">SLD processing time: 60s</p>
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>\
+<script src="{% static 'js/stats.js' %}"></script>
+{% endblock %}

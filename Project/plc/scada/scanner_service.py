@@ -1,37 +1,39 @@
 # scanner_service.py
 import threading
+import os
 import time
 from .AB_Pylogix import PLCScanner
 
-scanner_instance = PLCScanner(ip_address="10.8.0.110", processor_slot=0)
-scanner_instance.log_buffer = []
+class ScannerManager:
+    _instance = None
+    _lock = threading.Lock()
 
-# Use a Lock to prevent race conditions during startup
-_lock = threading.Lock()
-is_scanning = False
+    @classmethod
+    def get_scanner(cls):
+        with cls._lock:
+            if cls._instance is None:
+                print("--- Creating Global Scanner Instance ---")
+                cls._instance = PLCScanner(ip_address="10.8.0.110", processor_slot=0)
+            return cls._instance
+
+# scanner_service.py
 
 def run_scanner():
+    scanner = ScannerManager.get_scanner()
+    print("--- PLC Thread Started ---", flush=True)
     while True:
         try:
-            scanner_instance.scan()
+            scanner.scan()
+            #print("Scan complete, sleeping...", flush=True)
         except Exception as e:
-            print(f"Scanner Error: {e}")
-        time.sleep(0.5)
+            print(f"Scanner Error: {e}", flush=True)
+        
+        time.sleep(0.1)
 
 def start_scanner():
-    global is_scanning
-    with _lock:
-        if is_scanning:
-            return  # Already running
+    if os.environ.get('RUN_MAIN') != 'true':
+        print("Failed to open thread")
+        return
         
-        is_scanning = True
-        thread = threading.Thread(target=run_scanner, name="PLCScannerThread", daemon=True)
-        thread.start()
-        print("--- PLC Scanner Thread Started ---")
-
-# Returns 1 if estop on, 0 otherwise
-def get_estop_state():
-    return scanner_instance.estop
-
-def get_last_puck_color():
-    return scanner_instance.puck_color
+    thread = threading.Thread(target=run_scanner, daemon=True)
+    thread.start()

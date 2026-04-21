@@ -1,7 +1,8 @@
 from pylogix import PLC
 import time
 from django.utils import timezone
-from .models import LogEntry
+from .models import *
+from django.core.cache import cache
 
 
 class PLCScanner:
@@ -21,6 +22,7 @@ class PLCScanner:
         self.comm = PLC()
         self.comm.IPAddress = self.ip_address
         self.comm.ProcessorSlot = self.processor_slot
+        self.comm.SocketTimeout = 0.5
 
         # Station states
         self.mpo_oven_has_puck = False
@@ -28,6 +30,9 @@ class PLCScanner:
         self.mpo_turntable_has_puck = False
         self.sld_has_puck = False
         self.estop = False
+
+        # Polling
+        self.sld_data = []
 
         # Puck info
         self.puck_color = "Null"
@@ -71,10 +76,16 @@ class PLCScanner:
 
         new_entry.save()
 
+    def log_sld_val(self, val):
+        self.sld_data.append(val)
+        if(len(self.sld_data) > 100):
+            self.sld_data.pop(0)
+
+        cache.set('sld_data', self.sld_data, timeout=60)
+
     # -----------------------------------------------------
 
     def scan_tag(self, tag_name):
-
         result = self.comm.Read(tag_name)
 
         if result.Status == "Success":
@@ -143,6 +154,8 @@ class PLCScanner:
     def update_mpo_oven(self):
 
         new_state = self.scan_tag("Program:MainProgram.MPO_Has_Puck")
+        if(new_state is None):
+            return
 
         if new_state and not self.mpo_oven_has_puck:
 
@@ -169,6 +182,8 @@ class PLCScanner:
     def update_mpo_gripper(self):
 
         new_state = (self.scan_tag("Program:MainProgram.Step[1]") != 0)
+        if(new_state is None):
+            return
 
         if new_state and not self.mpo_gripper_has_puck:
 
@@ -191,6 +206,8 @@ class PLCScanner:
     def update_mpo_turntable(self):
 
         new_state = (self.scan_tag("Program:MainProgram.Step[2]") != 0)
+        if(new_state is None):
+            return
 
         if new_state and not self.mpo_turntable_has_puck:
 
@@ -211,8 +228,9 @@ class PLCScanner:
     # -----------------------------------------------------
 
     def update_sld(self):
-
         new_state = (self.scan_tag("Program:MainProgram.SLD_Step") != 20)
+        #if(new_state is None):
+        #    return
 
         if new_state and not self.sld_has_puck:
 
@@ -237,11 +255,16 @@ class PLCScanner:
 
         self.sld_has_puck = new_state
 
+        new_sld_value = self.scan_tag("Scaled_Analog_Color_Sensor_SLD")
+        self.log_sld_val(1)
+
     # -----------------------------------------------------
 
     def update_estop(self):
 
         new_estop = self.scan_tag("Program:MainProgram.ESTOP")
+        if(new_estop is None):
+            return
 
         if new_estop and not self.estop:
             self.log(f"E-STOP PRESSED", "SAFETY")
@@ -291,7 +314,6 @@ class PLCScanner:
     # -----------------------------------------------------
 
     def scan(self):
-
         if self.first_scan:
             self.first_scan = False
             self.first_scan_init()
@@ -310,11 +332,8 @@ class PLCScanner:
     # -----------------------------------------------------
 
     def run(self):
-
         while True:
-
             self.cur_timer += 1
-
             if self.cur_timer >= self.reporting_period:
 
                 self.cur_timer = 0
@@ -327,7 +346,7 @@ def StartScanning():
     scanner = PLCScanner(
         ip_address="10.8.0.110",
         processor_slot=0,
-        reporting_period=10000000
+        reporting_period=10000
     )
 
     scanner.run()

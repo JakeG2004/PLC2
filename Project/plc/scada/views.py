@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
 from django.utils import timezone
+from django.core.cache import cache
 
 import datetime
 
@@ -106,22 +107,45 @@ def get_prod_stats(request: HttpRequest) -> JsonResponse:
         for x in range(4):
             new_entry.append(float(checkpoints[x].message.split()[-1][1:-2]))
 
+        if(len(response) >= 10):
+            break;
+
         response.append(new_entry)
 
     return JsonResponse({"times": response})
+
+@require_http_methods(["GET"])
+def get_time_since_last_error(request: HttpRequest) -> JsonResponse:
+    recent_error = LogEntry.objects.filter(log_type="SAFETY").order_by("-date").first()
+
+    if(not recent_error):
+        return JsonResponse({'Seconds': -1})
+
+    error_time = recent_error.date;
+
+    diff = timezone.now() - error_time
+    seconds = diff.seconds
+
+    return JsonResponse({'Seconds': seconds})
+
+@require_http_methods(["GET"])
+def get_uptime(request: HttpRequest) -> JsonResponse:
+    uptime = get_elapsed_time()
+    return JsonResponse({'Seconds': uptime.seconds})
 
 
 # Gets the last 10 logs for web console
 @require_http_methods(["GET"])
 def get_logs(request):
     entries = LogEntry.objects.all().order_by("-date").values()[:10]
+
     current_logs = []
 
     for entry in entries:
         local_date = timezone.localtime(entry['date'])
         current_logs.append(f"[{local_date:%Y-%m-%d %H:%M:%S}] [{entry["log_type"]}] {entry["message"]}")
-    
+
     return JsonResponse({
         "new_logs": current_logs,
-        "estop_status": get_estop_state()
+        "sld_data": cache.get("sld_data", []),
     })

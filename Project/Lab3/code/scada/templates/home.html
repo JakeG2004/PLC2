@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto text-center">
+        <h1 class="display-4">Jake's SCADA Application</h1>
+        <p class="lead">Real-time PLC monitoring and logging.</p>
+    </div>
+</div>
+
+<hr>
+
+<div class="log-wrapper shadow-sm">
+    <div id="log-scroll-area">
+        <table class="table">
+            <thead class="sticky-top bg-dark">
+                <tr>
+                    <th>Log Type</th>
+                    <th>Log Date</th>
+                    <th>Log Content</th>
+                </tr>
+            </thead>
+            <tbody id="log-table-body">
+                </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/scada.js' %}"></script>
+{% endblock %}

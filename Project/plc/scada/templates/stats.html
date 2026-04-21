@@ -19,7 +19,7 @@
         <div class="card-body">
             <h3 class="card-title">Logging Server Uptime</h3>
             <h6 class="card-subtitle mb-2 text-muted">Total current logging site uptime as of page load</h6>
-            <p class="card-text">00:00:00</p>
+            <p class="card-text" id="uptime">00:00:00</p>
         </div>
         </div>
     </div>
@@ -29,7 +29,7 @@
         <div class="card-body">
             <h3 class="card-title">Time Since Last Safety Log</h3>
             <h6 class="card-subtitle mb-2 text-muted">At time of page loading</h6>
-            <p class="card-text">00:00:00</p>
+            <p class="card-text" id="safety-time">00:00:00</p>
         </div>
         </div>
     </div>
@@ -70,16 +70,16 @@
         <div class="card">
         <div class="card-body">
             <h3 class="card-title">Processing Time Breakdown</h3>
-            <h6 class="card-subtitle mb-2 text-muted">Shows the time for a puck to get through, as well as individual component times</h6>
+            <h6 class="card-subtitle mb-2 text-muted">Shows the time for a puck to get through, as well as individual component times for the last 10 pucks.</h6>
             <div class="chart">
                 <canvas id="timeChart"></canvas>
             </div>
             <h4 class="card-title">Average Times:</h4>
-            <p class="card-text">Total processing time: 60s</p>
-            <p class="card-text">Oven processing time: 10s</p>
-            <p class="card-text">Gripper processing time: 60s</p>
-            <p class="card-text">Turntable processing time: 60s</p>
-            <p class="card-text">SLD processing time: 60s</p>
+            <p class="card-text" id="avg-total">Total processing time: 60s</p>
+            <p class="card-text" id="avg-oven">Oven processing time: 10s</p>
+            <p class="card-text" id="avg-gripper">Gripper processing time: 60s</p>
+            <p class="card-text" id="avg-turntable">Turntable processing time: 60s</p>
+            <p class="card-text" id="avg-sld">SLD processing time: 60s</p>
         </div>
         </div>
     </div>
@@ -87,6 +87,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>\
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'js/stats.js' %}"></script>
 {% endblock %}

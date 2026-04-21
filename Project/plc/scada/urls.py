@@ -10,4 +10,6 @@ urlpatterns = [
     path('get_error_stats/', views.get_error_stats, name="get_error_stats"),
     path('get_color_stats/', views.get_color_stats, name="get_color_stats"),
     path('get_prod_stats/', views.get_prod_stats, name="get_prod_stats"),
+    path('get_time_since_last_error/', views.get_time_since_last_error, name="get_time_since_last_error"),
+    path('get_uptime/', views.get_uptime, name="get_uptime"),
 ]

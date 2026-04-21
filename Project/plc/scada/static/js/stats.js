@@ -1,17 +1,68 @@
-addEventListener("DOMContentLoaded", (event) => {
+document.addEventListener("DOMContentLoaded", (event) => {
+    FillTimeSinceLastError();
+    FillUptime();
     RenderErrorChart();
     RenderPuckColorChart();
     RenderTimeChart();
-})
+});
+
+function FillTimeSinceLastError() {
+    fetch("/get_time_since_last_error/")
+        .then(response => response.json())
+        .then(data => {
+            let error_time = data['Seconds'];
+            if(error_time < 0) {
+                document.getElementById('safety-time').innerHTML = "No Safety Logs Found";
+                return;
+            }
+
+            let minutes = Math.round(error_time / 60);
+            let seconds = error_time % 60;
+            let hours = Math.round(minutes / 60);
+            minutes = minutes % 60;
+
+            let minutes_text = minutes < 10 ? `0${minutes}` : minutes;
+            let seconds_text = seconds < 10 ? `0${seconds}` : seconds;
+            let hours_text = hours < 10 ? `0${hours}` : hours;
+
+            document.getElementById('safety-time').innerHTML = `${hours_text}:${minutes_text}:${seconds_text}`;
+        })
+        .catch(error => {
+            console.error('Error in FillTimeSinceLastError:', error);
+        });
+}
+
+function FillUptime() {
+    fetch("/get_uptime/")
+        .then(response => response.json())
+        .then(data => {
+            let error_time = data['Seconds'];
+
+            let minutes = Math.round(error_time / 60);
+            let seconds = error_time % 60;
+            let hours = Math.round(minutes / 60);
+            minutes = minutes % 60;
+
+            let minutes_text = minutes < 10 ? `0${minutes}` : minutes;
+            let seconds_text = seconds < 10 ? `0${seconds}` : seconds;
+            let hours_text = hours < 10 ? `0${hours}` : hours;
+
+            document.getElementById('uptime').innerHTML = `${hours_text}:${minutes_text}:${seconds_text}`;
+        })
+        .catch(error => {
+            console.error('Error in FillTimeSinceLastError:', error);
+        });
+}
 
 function RenderErrorChart() {
     fetch("/get_error_stats")
         .then(response => response.json())
         .then(data => {
-                dataset = [data['error'], data['non_error']];
+            // Locked with 'const'
+            const dataset = [data['error'], data['non_error']];
 
-                const ctx = document.getElementById('errorChart');
-                new Chart(ctx, {
+            const ctx = document.getElementById('errorChart');
+            new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Error', 'Not Error'],
@@ -25,12 +76,12 @@ function RenderErrorChart() {
                         hoverOffset: 4
                     }]
                 },
-                });
-            })
+            });
+        })
         .catch(error => {
-            console.error('Error: ', error);
+            console.error('Error in RenderErrorChart:', error);
             const textBox = document.getElementById('error-text');
-            textBox.textContent = "Error fetching data";
+            if (textBox) textBox.textContent = "Error fetching data";
         });
 }
 
@@ -38,106 +89,109 @@ function RenderPuckColorChart() {
     fetch("/get_color_stats")
         .then(response => response.json())
         .then(data => {
-            dataset = [data['red_count'], data['blue_count'], data['white_count']];
+            // Locked with 'const'
+            const dataset = [data['red_count'], data['blue_count'], data['white_count']];
             const ctx = document.getElementById('colorChart');
 
             new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Red', 'Blue', 'White'],
-                datasets: [{
-                    label: 'Puck Colors',
-                    data: dataset,
-                    backgroundColor: [
-                        'rgb(255, 0, 55)',
-                        'rgb(0, 153, 255)',
-                        'rgb(178, 178, 178)',
-                    ],
-                    hoverOffset: 4
-                }]
-            },
+                type: 'doughnut',
+                data: {
+                    labels: ['Red', 'Blue', 'White'],
+                    datasets: [{
+                        label: 'Puck Colors',
+                        data: dataset,
+                        backgroundColor: [
+                            'rgb(255, 0, 55)',
+                            'rgb(0, 153, 255)',
+                            'rgb(178, 178, 178)',
+                        ],
+                        hoverOffset: 4
+                    }]
+                },
             });
         })
-
+        .catch(error => {
+            console.error('Error in RenderPuckColorChart:', error);
+        });
 }
 
 function RenderTimeChart() {
     fetch("/get_prod_stats")
-    .then(response => response.json())
-    .then(data => { 
-        console.log(data);
-        timeData = data['times'];
+        .then(response => response.json())
+        .then(data => { 
+            // Locked with 'const'
+            const timeData = data['times'];
+            const time_datasets = [];
 
-        time_datasets = [];
-
-        // Populate the time datasets NEED TO MAKE THIS CORRECT. POOL BY SECTION, NOT PUCK
-        for(var i = 0; i < timeData.length; i++) {
-            curData = timeData[i];
-            time_datasets.push([]);
-            for(var j = 0; j < curData.length; j++) {
-                time_datasets[i].push(curData[j]);
+            // Used 'let i' and 'let j' for block-level scope
+            for(let i = 0; i < 4; i++) {
+                const cur_dataset = [];
+                for(let j = 0; j < timeData.length; j++) {
+                    cur_dataset.push(timeData[j][i]);
+                }
+                time_datasets.push(cur_dataset);
             }
-        }
 
-        // Populate the labels
-        labels = []
-        for(var i = 0; i < timeData.length; i++) {
-            labels.push(`Puck ${i}`);
-        }
+            const num_entries = time_datasets[0].length;
 
-        // Populate the actual datasets
-        datasets = [];
-        for(var i = 0 ; i < timeData.length; i++) {
-            new_data = {};
-            new_data['label'] = `Puck ${i}`;
-            new_data['data'] = time_datasets[i];
-
-        }
-
-        const ctx = document.getElementById('timeChart');
-
-        new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Category A', 'Category B'], // Your X-axis labels
-          datasets: [
-            {
-              label: 'Section 1',
-              data: [25, 40], // Value for the first section
-              backgroundColor: 'rgb(255, 99, 132)',
-            },
-            {
-              label: 'Section 2',
-              data: [25, 20], // Piled on top of Section 1
-              backgroundColor: 'rgb(54, 162, 235)',
-            },
-            {
-              label: 'Section 3',
-              data: [25, 30], // Piled on top of Section 2
-              backgroundColor: 'rgb(255, 205, 86)',
-            },
-            {
-              label: 'Section 4',
-              data: [25, 10], // Piled on top of Section 3 (Total for Category A = 100)
-              backgroundColor: 'rgb(75, 192, 192)',
+            // Locked labels array
+            const labels = [];
+            for(let i = 0; i < num_entries; i++) {
+                labels.push(`Puck ${i}`);
             }
-          ]
-        },
-        options: {
-          scales: {
-            x: {
-              stacked: true, // This stacks the bars horizontally
-            },
-            y: {
-              stacked: true, // This stacks the bars vertically
-              beginAtZero: true,
-              max: 100 // Optional: forces the chart to always show 100
+
+            // Locked dataset arrays and config
+            const datasets = [];
+            const colors = ['rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 205, 86)', 'rgb(75, 192, 192)'];
+            const sections = ["MPO Oven", "Mpo Gripper", "MPO Turntable", "SLD"];
+
+            for(let i = 3 ; i >= 0; i--) {
+                const new_data = {
+                    label: sections[3 - i],
+                    data: time_datasets[i],
+                    backgroundColor: colors[i]
+                };
+                datasets.push(new_data);
             }
-          }
-        }
-      });
-    })
-    .catch(error => {
-        console.error('Error: ', error);
-    });
+
+            const ctx = document.getElementById('timeChart');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels, // Uses the cleaned up labels array
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true }
+                    }
+                }
+            });
+
+            // Figure out the averages and show
+            const avg_times = [];
+            let total_avg = 0;
+            
+            for(let i = 0; i < 4; i++) {
+                let cur_sum = 0;
+                for(let j = 0; j < num_entries; j++) {
+                    cur_sum += time_datasets[i][j];
+                }
+
+                let rounded_time = (cur_sum / num_entries);
+                avg_times.push(rounded_time.toFixed(2));
+                total_avg += Number(rounded_time.toFixed(2));
+            }
+
+            document.getElementById("avg-total").innerHTML = `Total processing time: ${total_avg.toFixed(2)} seconds`;
+            document.getElementById("avg-oven").innerHTML = `MPO Oven processing time: ${avg_times[3]} seconds`;
+            document.getElementById("avg-gripper").innerHTML = `MPO Gripper processing time: ${avg_times[2]} seconds`;
+            document.getElementById("avg-turntable").innerHTML = `MPO Turntable processing time: ${avg_times[1]} seconds`;
+            document.getElementById("avg-sld").innerHTML = `SLD processing time: ${avg_times[0]} seconds`;
+        })
+        .catch(error => {
+            console.error('Error in RenderTimeChart:', error);
+        });
 }
