@@ -43,9 +43,6 @@ function fetchLogs() {
         .catch(err => console.error("Polling error:", err));
 }
 
-/**
- * Parses log strings and updates the HTML table
- */
 function updateLogTable(tableBody, logs) {
     if (!tableBody) return;
 
@@ -80,48 +77,49 @@ function updateChart(sldData) {
 
     const ctx = canvas.getContext('2d');
     
-    // Create simple labels (1, 2, 3...) based on the data index
-    const labels = sldData.map((_, index) => index + 1);
+    // 1. Sanitize: 0 stays 0, everything else is at least 30,000
+    const sanitizedData = sldData.map(val => (val > 0 && val < 30000) ? 30000 : val);
+    const labels = sanitizedData.map((_, index) => index + 1);
+
+    const activeData = sanitizedData.filter(v => v >= 30000);
+    
+    let dynamicMin = activeData.length > 0 ? Math.min(...activeData) : 30000;
+    let dynamicMax = activeData.length > 0 ? Math.max(...activeData) : 35000;
+
+    // Add a little "padding" (e.g., 5%) so the line isn't touching the very top/bottom
+    const padding = (dynamicMax - dynamicMin) * 0.05;
+    dynamicMax += padding;
+    dynamicMin -= padding;
 
     if (sldChart) {
-        // If chart already exists, update data and labels
-        sldChart.data.labels = labels;
-        sldChart.data.datasets[0].data = sldData;
+        // Update scales dynamically
+        sldChart.options.scales.y.min = dynamicMin; // Always keep 0 visible for "lost connection"
         
-        // Use 'none' mode to skip animations for better performance during fast polling
+        sldChart.data.labels = labels;
+        sldChart.data.datasets[0].data = sanitizedData;
         sldChart.update('none'); 
     } else {
-        // First time initialization
         sldChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [{
                     label: 'SLD Sensor Values',
-                    data: sldData,
+                    data: sanitizedData,
                     borderColor: 'rgb(0, 153, 255)',
-                    backgroundColor: 'rgba(0, 153, 255, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.3, // Curve the lines slightly
                     fill: true,
-                    pointRadius: 2
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: false, // Disable animations for real-time feel
                 scales: {
                     y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Value' }
-                    },
-                    x: {
-                        title: { display: true, text: 'Sample #' }
+                        // The core settings for your requirement:
+                        min: dynamicMin, 
+                        // setting suggestedMax allows it to grow with the data
+                        max: dynamicMax 
                     }
-                },
-                plugins: {
-                    legend: { display: true, position: 'top' }
                 }
             }
         });
@@ -136,6 +134,6 @@ function getTypeClass(type) {
     if (t.includes('ERROR') || t.includes('SAFETY')) return 'bg-danger';
     if (t.includes('OPERATION MODE')) return 'bg-warning';
     if (t.includes('COMPLETE')) return 'bg-success';
-    if (t.includes('CHECKPOINT') || t.includes('PROGRESS')) return 'bg-info';
+    if (t.includes('CHECKPOINT')) return 'bg-info';
     return 'bg-primary';
 }

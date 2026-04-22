@@ -229,8 +229,9 @@ class PLCScanner:
 
     def update_sld(self):
         new_state = (self.scan_tag("Program:MainProgram.SLD_Step") != 20)
-        #if(new_state is None):
-        #    return
+        if(new_state is None):
+            self.log_sld_val(0)
+            return
 
         if new_state and not self.sld_has_puck:
 
@@ -256,7 +257,7 @@ class PLCScanner:
         self.sld_has_puck = new_state
 
         new_sld_value = self.scan_tag("Scaled_Analog_Color_Sensor_SLD")
-        self.log_sld_val(1)
+        self.log_sld_val(new_sld_value)
 
     # -----------------------------------------------------
 

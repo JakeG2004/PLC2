@@ -142,7 +142,7 @@ function RenderTimeChart() {
 
             // Locked dataset arrays and config
             const datasets = [];
-            const colors = ['rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 205, 86)', 'rgb(75, 192, 192)'];
+            const colors = ['rgb(255, 0, 55)', 'rgb(0, 153, 255)', 'rgb(255, 179, 2)', 'rgb(35, 192, 0)'];
             const sections = ["MPO Oven", "Mpo Gripper", "MPO Turntable", "SLD"];
 
             for(let i = 3 ; i >= 0; i--) {

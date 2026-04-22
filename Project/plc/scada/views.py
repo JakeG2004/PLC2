@@ -131,7 +131,7 @@ def get_time_since_last_error(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def get_uptime(request: HttpRequest) -> JsonResponse:
     uptime = get_elapsed_time()
-    return JsonResponse({'Seconds': uptime.seconds})
+    return JsonResponse({'Seconds': uptime})
 
 
 # Gets the last 10 logs for web console

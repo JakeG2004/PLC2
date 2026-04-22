@@ -7,6 +7,7 @@ from .AB_Pylogix import PLCScanner
 class ScannerManager:
     _instance = None
     _lock = threading.Lock()
+    start_time = time.time()
 
     @classmethod
     def get_scanner(cls):
@@ -37,3 +38,6 @@ def start_scanner():
         
     thread = threading.Thread(target=run_scanner, daemon=True)
     thread.start()
+
+def get_elapsed_time():
+    return int(time.time() - ScannerManager.start_time)
