@@ -1,0 +1,13 @@
+[Unit]
+Description=Run increment-scores every 10 seconds
+
+[Timer]
+# Run 10 seconds after the unit was last activated
+OnUnitActiveSec=10s
+# Run 10 seconds after bootup initially
+OnBootSec=10s
+# Force high precision
+AccuracySec=1ms
+
+[Install]
+WantedBy=timers.target

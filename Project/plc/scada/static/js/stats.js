@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     RenderTimeChart();
 });
 
+// Fills in the "time since last error" card
 function FillTimeSinceLastError() {
     fetch("/get_time_since_last_error/")
         .then(response => response.json())
@@ -32,6 +33,7 @@ function FillTimeSinceLastError() {
         });
 }
 
+// Fills in the "uptime" card
 function FillUptime() {
     fetch("/get_uptime/")
         .then(response => response.json())
@@ -54,6 +56,7 @@ function FillUptime() {
         });
 }
 
+// Fills in the error rate donut chart
 function RenderErrorChart() {
     fetch("/get_error_stats")
         .then(response => response.json())
@@ -85,6 +88,7 @@ function RenderErrorChart() {
         });
 }
 
+// Fills in the puck colors donut chart
 function RenderPuckColorChart() {
     fetch("/get_color_stats")
         .then(response => response.json())
@@ -115,15 +119,16 @@ function RenderPuckColorChart() {
         });
 }
 
+// Fills in the factory section time chart
 function RenderTimeChart() {
     fetch("/get_prod_stats")
         .then(response => response.json())
         .then(data => { 
-            // Locked with 'const'
+            // Original time data is per puck
             const timeData = data['times'];
             const time_datasets = [];
 
-            // Used 'let i' and 'let j' for block-level scope
+            // Reformat the data to be all the SLD times, MPO times, etc...
             for(let i = 0; i < 4; i++) {
                 const cur_dataset = [];
                 for(let j = 0; j < timeData.length; j++) {
@@ -134,17 +139,17 @@ function RenderTimeChart() {
 
             const num_entries = time_datasets[0].length;
 
-            // Locked labels array
+            // Create the labels
             const labels = [];
             for(let i = 0; i < num_entries; i++) {
                 labels.push(`Puck ${i}`);
             }
 
-            // Locked dataset arrays and config
             const datasets = [];
             const colors = ['rgb(255, 0, 55)', 'rgb(0, 153, 255)', 'rgb(255, 179, 2)', 'rgb(35, 192, 0)'];
             const sections = ["MPO Oven", "Mpo Gripper", "MPO Turntable", "SLD"];
 
+            // Create the datasets
             for(let i = 3 ; i >= 0; i--) {
                 const new_data = {
                     label: sections[3 - i],
@@ -154,12 +159,13 @@ function RenderTimeChart() {
                 datasets.push(new_data);
             }
 
+            // Render the chart
             const ctx = document.getElementById('timeChart');
 
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels, // Uses the cleaned up labels array
+                    labels: labels,
                     datasets: datasets
                 },
                 options: {
@@ -185,6 +191,7 @@ function RenderTimeChart() {
                 total_avg += Number(rounded_time.toFixed(2));
             }
 
+            // Update text
             document.getElementById("avg-total").innerHTML = `Total processing time: ${total_avg.toFixed(2)} seconds`;
             document.getElementById("avg-oven").innerHTML = `MPO Oven processing time: ${avg_times[3]} seconds`;
             document.getElementById("avg-gripper").innerHTML = `MPO Gripper processing time: ${avg_times[2]} seconds`;

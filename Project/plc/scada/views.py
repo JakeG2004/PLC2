@@ -10,18 +10,14 @@ import datetime
 from .scanner_service import *
 from .models import *
 
+# Main page with live logging and polling
 def home(request):
     if(request.method == 'POST'):
         pass
 
     return render(request, "home.html")
 
-def index(request):
-    if(request.method == 'POST'):
-        pass
-
-    return render(request, "scada/index.html")
-
+# The view db page allows users to view all of the logs and search through them
 def view_db(request):
     logs = LogEntry.objects.all().order_by("-date")
 
@@ -29,21 +25,20 @@ def view_db(request):
     search_query = request.GET.get('search', '').strip()
     date_query = request.GET.get('date_filter', '').strip()
 
-    # Apply text search (Type or Message)
+    # Filter by search query
     if search_query:
         logs = logs.filter(
             Q(log_type__icontains=search_query) | 
             Q(message__icontains=search_query)
         )
 
-    # Apply date picker filter
+    # Filter by date
     if date_query:
-        # date_query will be "YYYY-MM-DD". 
-        # __date extracts the date portion of the DateTimeField for comparison.
         logs = logs.filter(date__date=date_query)
     
     return render(request, "view_db.html", {'log_entries': logs})
 
+# The statistics page. Shows summarized information about the uptime, error rate, and processing time of the system.
 def statistics(request: HttpRequest) -> HttpRequest:
     return render(request, "stats.html")
 
@@ -51,7 +46,8 @@ def statistics(request: HttpRequest) -> HttpRequest:
 # API ROUTES
 # ==========
 
-# Gets the error stats
+# Gets the counts of error logs and non-error logs.abs
+# Required for the statistics page
 @require_http_methods(["GET"])
 def get_error_stats(request: HttpRequest) -> JsonResponse:
     total_messages = len(LogEntry.objects.all())
@@ -62,7 +58,8 @@ def get_error_stats(request: HttpRequest) -> JsonResponse:
         "non_error": total_messages,
     })
 
-# Gets the color stats
+# Gets the numbers of the colors of each processed puck
+# Required for the statistics page
 @require_http_methods(["GET"])
 def get_color_stats(request: HttpRequest) -> JsonResponse:
     white_count = len(LogEntry.objects.filter(log_type="COMPLETE", message__istartswith="white"))
@@ -75,10 +72,11 @@ def get_color_stats(request: HttpRequest) -> JsonResponse:
         "red_count": red_count,
     })
 
-# Gets the production time stats
+# Gets the production time stats for the last 10 pucks.abs
+# Format is response = [[oven_time, gripper_time, turntable_time, sld_time]]
+# Required for the statistics page
 @require_http_methods(["GET"])
 def get_prod_stats(request: HttpRequest) -> JsonResponse:
-    # Response is 2d arr [[oven_time, gripper_time, turntable_time, sld_time]]
     response = []
 
 
@@ -114,6 +112,8 @@ def get_prod_stats(request: HttpRequest) -> JsonResponse:
 
     return JsonResponse({"times": response})
 
+# This function gets the time for the last error log.
+# It is required for the statistics page
 @require_http_methods(["GET"])
 def get_time_since_last_error(request: HttpRequest) -> JsonResponse:
     recent_error = LogEntry.objects.filter(log_type="SAFETY").order_by("-date").first()
@@ -128,13 +128,15 @@ def get_time_since_last_error(request: HttpRequest) -> JsonResponse:
 
     return JsonResponse({'Seconds': seconds})
 
+# Gets the uptime of the program
+# Required for the statistics page
 @require_http_methods(["GET"])
 def get_uptime(request: HttpRequest) -> JsonResponse:
     uptime = get_elapsed_time()
     return JsonResponse({'Seconds': uptime})
 
-
-# Gets the last 10 logs for web console
+# Gets the last 10 logs
+# Required for the live update home page
 @require_http_methods(["GET"])
 def get_logs(request):
     entries = LogEntry.objects.all().order_by("-date").values()[:10]

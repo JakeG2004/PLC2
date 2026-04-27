@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Increment Scores Curl Command
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl -s 127.0.0.1:8000/increment_scores/
+
+[Install]
+WantedBy=multi-user.target

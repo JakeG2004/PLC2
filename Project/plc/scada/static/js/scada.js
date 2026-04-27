@@ -1,20 +1,14 @@
-/**
- * Global variable to store the Chart instance.
- * This prevents creating multiple charts on the same canvas during polling.
- */
 let sldChart = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initial fetch
     fetchLogs();
     
-    // Set interval to poll every 1000ms (1 second)
+    // Poll every second to get new data
     setInterval(fetchLogs, 1000);
 });
 
-/**
- * Main polling function to retrieve logs and sensor data
- */
+// Primary poll function to get data then update the page
 function fetchLogs() {
     const tableBody = document.getElementById('log-table-body');
     const scrollArea = document.getElementById('log-scroll-area');
@@ -25,17 +19,14 @@ function fetchLogs() {
             return response.json();
         })
         .then(data => {
-            // 1. Handle Log Table Updates
             if (data.new_logs && data.new_logs.length > 0) {
                 updateLogTable(tableBody, data.new_logs);
                 
-                // Auto-scroll to the bottom of the log area
                 if (scrollArea) {
                     scrollArea.scrollTop = scrollArea.scrollHeight;
                 }
             }
 
-            // 2. Handle SLD Chart Updates
             if (data.sld_data) {
                 updateChart(data.sld_data);
             }
@@ -43,6 +34,7 @@ function fetchLogs() {
         .catch(err => console.error("Polling error:", err));
 }
 
+// Creates and updates the table on the main page
 function updateLogTable(tableBody, logs) {
     if (!tableBody) return;
 
@@ -64,20 +56,18 @@ function updateLogTable(tableBody, logs) {
         fragment.appendChild(row);
     });
 
-    tableBody.innerHTML = ""; // Clear existing rows
-    tableBody.appendChild(fragment); // Inject the new buffer
+    // Clear the table and insert the new data
+    tableBody.innerHTML = "";
+    tableBody.appendChild(fragment);
 }
 
-/**
- * Initializes or updates the Chart.js instance
- */
+// Creates or updates the chart.js instance
 function updateChart(sldData) {
     const canvas = document.getElementById('pollingChart');
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     
-    // 1. Sanitize: 0 stays 0, everything else is at least 30,000
     const sanitizedData = sldData.map(val => (val > 0 && val < 30000) ? 30000 : val);
     const labels = sanitizedData.map((_, index) => index + 1);
 
@@ -86,14 +76,13 @@ function updateChart(sldData) {
     let dynamicMin = activeData.length > 0 ? Math.min(...activeData) : 30000;
     let dynamicMax = activeData.length > 0 ? Math.max(...activeData) : 35000;
 
-    // Add a little "padding" (e.g., 5%) so the line isn't touching the very top/bottom
     const padding = (dynamicMax - dynamicMin) * 0.05;
     dynamicMax += padding;
     dynamicMin -= padding;
 
     if (sldChart) {
-        // Update scales dynamically
-        sldChart.options.scales.y.min = dynamicMin; // Always keep 0 visible for "lost connection"
+        sldChart.options.scales.y.min = dynamicMin;
+        sldChart.options.scales.y.max = dynamicMax;
         
         sldChart.data.labels = labels;
         sldChart.data.datasets[0].data = sanitizedData;
@@ -115,9 +104,7 @@ function updateChart(sldData) {
                 maintainAspectRatio: false,
                 scales: {
                     y: {
-                        // The core settings for your requirement:
                         min: dynamicMin, 
-                        // setting suggestedMax allows it to grow with the data
                         max: dynamicMax 
                     }
                 }
@@ -126,9 +113,7 @@ function updateChart(sldData) {
     }
 }
 
-/**
- * Helper to color-code the Bootstrap badges based on log type
- */
+// Gets the color of the bootstrap badge based on the log type
 function getTypeClass(type) {
     const t = type.toUpperCase();
     if (t.includes('ERROR') || t.includes('SAFETY')) return 'bg-danger';

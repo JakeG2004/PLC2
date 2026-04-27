@@ -1,4 +1,3 @@
-# scanner_service.py
 import threading
 import os
 import time
@@ -17,15 +16,12 @@ class ScannerManager:
                 cls._instance = PLCScanner(ip_address="10.8.0.110", processor_slot=0)
             return cls._instance
 
-# scanner_service.py
-
 def run_scanner():
     scanner = ScannerManager.get_scanner()
     print("--- PLC Thread Started ---", flush=True)
     while True:
         try:
             scanner.scan()
-            #print("Scan complete, sleeping...", flush=True)
         except Exception as e:
             print(f"Scanner Error: {e}", flush=True)
         
@@ -39,5 +35,6 @@ def start_scanner():
     thread = threading.Thread(target=run_scanner, daemon=True)
     thread.start()
 
+# Get the time since this program started
 def get_elapsed_time():
     return int(time.time() - ScannerManager.start_time)
