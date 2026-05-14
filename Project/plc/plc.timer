@@ -1,0 +1,14 @@
+[Unit]
+Description=Run increment heartbeat every 10 seconds
+
+[Timer]
+# Run 10 seconds after the unit was last activated
+OnUnitActiveSec=5s
+# Run 10 seconds after bootup initially
+OnBootSec=5s
+# Force high precision
+AccuracySec=1ms
+
+[Install]
+WantedBy=timers.target
+

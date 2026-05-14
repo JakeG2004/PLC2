@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Increment Heartbeat Command
+
+[Service]
+Type=oneshot
+ExecStart=/home/jake/Documents/Schoolwork/PLC2/Project/.venv/bin/python3 /home/jake/Documents/Schoolwork/PLC2/Project/plc/scada/heartbeat.py
+
+[Install]
+WantedBy=multi-user.target
+
